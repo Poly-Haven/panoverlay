@@ -30,16 +30,17 @@ def make_rotation(params):
     return rot_y(yaw) @ rot_x(-pitch) @ rot_z(-roll)
 
 
-def principal_point(size, shift, focal_pixels):
+def principal_point(size, shift):
     w, h = size
     diagonal = math.hypot(w, h)
 
-    # PTGui stores shift on short-side / long-side axes rather than raw x/y.
-    # The short-side term aligns with focal-normalized x, while the long-side
-    # term aligns with the image diagonal for this portrait project.
-    dx = shift["shortside"] * focal_pixels
+    # PTGui stores shift on short-side / long-side axes, both normalized by
+    # the image diagonal.  The short-side shift displaces the principal point
+    # in the positive-x (rightward) direction; the long-side shift displaces
+    # it in the camera-y (upward) direction, which is *negative* pixel-y.
+    dx = shift["shortside"] * diagonal
     dy = shift["longside"] * diagonal
-    return (w - 1) / 2 - dx, (h - 1) / 2 - dy
+    return (w - 1) / 2 + dx, (h - 1) / 2 - dy
 
 
 def make_camera(group, lens):
@@ -49,7 +50,7 @@ def make_camera(group, lens):
     sensor_diag = lens["lens"]["params"]["sensordiagonal"]
     f = f_mm * math.hypot(w, h) / sensor_diag
     shift = lens["shift"]["params"]
-    cx, cy = principal_point((w, h), shift, f)
+    cx, cy = principal_point((w, h), shift)
 
     return {
         "w": w,
