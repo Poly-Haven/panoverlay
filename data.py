@@ -150,9 +150,16 @@ def yaw_pitch_to_equirectangular(yaw: float, pitch: float, width: float, height:
     return normalized_x_from_yaw(yaw) * width, normalized_y_from_pitch(pitch) * height
 
 
+def has_viewport_correction(group) -> bool:
+    params = group["position"]["params"]
+    return any(abs(float(params.get(name, 0.0))) > 1e-9 for name in ("vpx", "vpy", "vpd"))
+
+
 def build_image_nodes(project) -> list[ImageNode]:
     nodes = []
     for image_id, group in enumerate(project["imagegroups"], start=1):
+        if has_viewport_correction(group):
+            continue
         params = group["position"]["params"]
         yaw = float(params["yaw"])
         pitch = float(params["pitch"])
@@ -171,6 +178,9 @@ def build_image_nodes(project) -> list[ImageNode]:
 def compute_control_point_distances(project):
     lens = project["globallenses"][0]
     cameras = [make_camera(group, lens) for group in project["imagegroups"]]
+    ignored_indices = {
+        image_index for image_index, group in enumerate(project["imagegroups"]) if has_viewport_correction(group)
+    }
     rows = []
 
     for cp in project["controlpoints"]:
@@ -185,6 +195,9 @@ def compute_control_point_distances(project):
         else:
             i1, _, x1, y1 = second
             i2, _, x2, y2 = first
+
+        if i1 in ignored_indices or i2 in ignored_indices:
+            continue
 
         source_ray_world = cameras[i1]["R"] @ pixel_to_camera_ray(cameras[i1], x1, y1)
         target_ray_cam = cameras[i2]["R"].T @ source_ray_world
