@@ -23,7 +23,16 @@ from overlay import OverlayWindow
 
 
 DEFAULT_PROJECT = Path(r"C:\Panos\witsand_beac_rocks_01\work\witsand_beac_rocks_01_greg.pts")
-CONFIG_PATH = Path(__file__).with_name("panoverlay.config.json")
+
+
+def _app_dir() -> Path:
+    """Return the directory containing the running executable (frozen) or script."""
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).parent
+    return Path(__file__).parent
+
+
+CONFIG_PATH = _app_dir() / "panoverlay.config.json"
 POLL_INTERVAL_MS = 1000
 
 
