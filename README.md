@@ -11,10 +11,11 @@ Augmentations for PTGui to assist in stitching difficult panoramas.
 
 ## TODOs:
 
+- [ ] Support viewpoint-corrected images (currently ignored)
 - [ ] Draw our own image numbers
 - [ ] Replace UI with toolbar
 - [ ] CP table
 - [ ] Filter images
 - [ ] CP point heatmap/vis
 - [ ] Detect open project file
-- [ ] Try detect correct draw coordinates from open editor
+- [ ] Try detect editor window coordinates from open editor
